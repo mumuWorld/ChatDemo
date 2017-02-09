@@ -36,7 +36,8 @@
 @property (nonatomic, strong) UILabel *voiceTime;
 @property (nonatomic, strong) UILabel *voiceUrl;
 
-
+@property (nonatomic, strong) UIImage *chatBackgroundUser;
+@property (nonatomic, strong) UIImage *chatBackgroundService;
 @end
 
 @implementation ChatTableViewCell
@@ -45,9 +46,10 @@
     [super awakeFromNib];
     // Initialization code
 }
-+ (instancetype)cellWithTableView:(UITableView *)tableView
++ (instancetype)cellWithTableView:(UITableView *)tableView WithIndex:(NSIndexPath *)indexPath
 {
-    static NSString *identifier = @"chatTableView";
+     NSString *identifier = [NSString stringWithFormat:@"chatTableView_%li",(long)indexPath.row];
+   
     
     ChatTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:identifier];
 //    
@@ -91,6 +93,8 @@
         
         _message = [[UILabel alloc] init];
         _message.numberOfLines = 0;
+        _message.font = TextFont;
+//        _message.textAlignment = NSTextAlignmentCenter;
         _message.tintColor = [UIColor blackColor];
         [self.messageView addSubview:_message];
         
@@ -110,6 +114,10 @@
         self.voiceAnimationImageView.animationDuration = 1;
         [self.voiceView addSubview:_voiceAnimationImageView];
         
+        _chatBackgroundUser = [UIImage imageNamed:@"wechatback2"];
+        _chatBackgroundService = [UIImage imageNamed:@"wechatback1"];
+        _chatBackgroundUser = [_chatBackgroundUser stretchableImageWithLeftCapWidth:15 topCapHeight:30];
+        _chatBackgroundService = [_chatBackgroundService stretchableImageWithLeftCapWidth:15 topCapHeight:30];
         _common = [Common commonShareInstance];
     }
     return self;
@@ -118,6 +126,7 @@
 - (void)setChatInfo:(ChatInfo *)chatInfo
 {
     _chatInfo = chatInfo;
+    
     if (_chatInfo.messageSenderType == MessageSenderByUser) {
         _iconView.frame = CGRectMake(SCREEN_WIDTH-PADDING *2-ICON_SIZE,PADDING*2, ICON_SIZE, ICON_SIZE);
         _timeView.frame = CGRectMake(SCREEN_WIDTH-70-200, 8, 200, 10);
@@ -125,23 +134,24 @@
         _timeView.textAlignment = NSTextAlignmentRight;
         
         if (_chatInfo.messageType == MessageTypeText) {
-
-            CGFloat chatTextMaxWidth = SCREEN_WIDTH - PADDING *8 - ICON_SIZE*2;
+            [self setMessageAboutMessageType:chatInfo];
             
-            CGSize chatTextSize = [_common sizeWithString:_chatInfo.chatText font:TextFont maxSize:CGSizeMake(chatTextMaxWidth, MAXFLOAT)];
-
-            CGFloat chatTextX = SCREEN_WIDTH - PADDING*6 - ICON_SIZE - chatTextSize.width;
-
-            CGFloat chatTextY = PADDING *2;
-        
-            self.messageView.frame = CGRectMake(chatTextX , chatTextY, chatTextSize.width + 30, chatTextSize.height + 20);
-
-            UIImage *image = [[UIImage alloc] init];
-            image = [UIImage imageNamed:@"wechatback2"];
-            image = [image stretchableImageWithLeftCapWidth:image.size.width/2 topCapHeight:30];
-            [_messageView setImage:image];
-            _message.text = _chatInfo.chatText;
-            _message.frame = CGRectMake(10, 5, chatTextSize.width+10, chatTextSize.height+10);
+//            CGFloat chatTextMaxWidth = SCREEN_WIDTH - PADDING *8 - ICON_SIZE*2;
+//            
+//            CGSize chatTextSize = [_common sizeWithString:_chatInfo.chatText font:TextFont maxSize:CGSizeMake(chatTextMaxWidth, MAXFLOAT)];
+//
+//            CGFloat chatTextX = SCREEN_WIDTH - PADDING*6 - ICON_SIZE - chatTextSize.width;
+//
+//            CGFloat chatTextY = PADDING *2;
+//        
+//            self.messageView.frame = CGRectMake(chatTextX , chatTextY, chatTextSize.width + 30, chatTextSize.height + 20);
+//
+//            UIImage *image = [[UIImage alloc] init];
+//            image = [UIImage imageNamed:@"wechatback2"];
+//            image = [image stretchableImageWithLeftCapWidth:image.size.width/2 topCapHeight:30];
+//            [_messageView setImage:image];
+//            _message.text = _chatInfo.chatText;
+//            _message.frame = CGRectMake(5, 5, chatTextSize.width+10, chatTextSize.height+10);
             
         } else if(_chatInfo.messageType == MessageTypeImage) {
             NSString *path = [NSString stringWithFormat:@"%@/%@",[self getDocumentPath],chatInfo.imageUrl];
@@ -180,7 +190,11 @@
             UIImage *image = [[UIImage alloc] init];
             image = [UIImage imageNamed:@"wechatback2"];
             image = [image stretchableImageWithLeftCapWidth:image.size.width/2 topCapHeight:30];
-            [_voiceView setImage:image];
+            UIImage *image2 = [[UIImage alloc] init];
+            image2 = [UIImage imageNamed:@"wechatback2cover"];
+            image2 = [image2 stretchableImageWithLeftCapWidth:image2.size.width/2 topCapHeight:30];
+            _voiceView.image = image;
+            _voiceView.highlightedImage = image2;
             
             _voiceTime.text = [NSString stringWithFormat:@"%li \"",chatInfo.duringTime];
             _voiceTime.frame = CGRectMake(5, 10, _voiceView.frame.size.width-5-30, 20);
@@ -193,8 +207,13 @@
             UITapGestureRecognizer *singleTap =
             [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(whenClickVoice:)];
             [_voiceView addGestureRecognizer:singleTap];
+            UILongPressGestureRecognizer *longTap =
+            [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(whenLongPressVoice:)];
+            [_voiceView addGestureRecognizer:longTap];
+            [singleTap requireGestureRecognizerToFail:longTap];
+
         }
-#pragma mark ---------------
+#pragma mark --------------- 客服--------------------------------
     } else if (_chatInfo.messageSenderType == MessageSenderByService) {
         _iconView.frame = CGRectMake(PADDING *2,PADDING*2, ICON_SIZE, ICON_SIZE);
         _timeView.frame = CGRectMake(70, 8, 200, 10);
@@ -202,23 +221,23 @@
         _timeView.textAlignment = NSTextAlignmentLeft;
         
         if (_chatInfo.messageType == MessageTypeText) {
-            
-            CGFloat chatTextMaxWidth = SCREEN_WIDTH - PADDING *8 - ICON_SIZE*2;
-            
-            CGSize chatTextSize = [_common sizeWithString:_chatInfo.chatText font:TextFont maxSize:CGSizeMake(chatTextMaxWidth, MAXFLOAT)];
-            
-            CGFloat chatTextX = SCREEN_WIDTH - PADDING*6 - ICON_SIZE - chatTextSize.width;
-            
-            CGFloat chatTextY = PADDING *2;
-            
-            self.messageView.frame = CGRectMake(chatTextX , chatTextY, chatTextSize.width + 30, chatTextSize.height + 20);
-            
-            UIImage *image = [[UIImage alloc] init];
-            image = [UIImage imageNamed:@"wechatback1"];
-            image = [image stretchableImageWithLeftCapWidth:image.size.width/2 topCapHeight:30];
-            [_messageView setImage:image];
-            _message.text = _chatInfo.chatText;
-            _message.frame = CGRectMake(10, 5, chatTextSize.width+10, chatTextSize.height+10);
+            [self setMessageAboutMessageType:chatInfo];
+//            CGFloat chatTextMaxWidth = SCREEN_WIDTH - PADDING *8 - ICON_SIZE*2;
+//            
+//            CGSize chatTextSize = [_common sizeWithString:_chatInfo.chatText font:TextFont maxSize:CGSizeMake(chatTextMaxWidth, MAXFLOAT)];
+//            
+//            CGFloat chatTextX = SCREEN_WIDTH - PADDING*6 - ICON_SIZE - chatTextSize.width;
+//            
+//            CGFloat chatTextY = PADDING *2;
+//            
+//            self.messageView.frame = CGRectMake(chatTextX , chatTextY, chatTextSize.width + 30, chatTextSize.height + 20);
+//            
+//            UIImage *image = [[UIImage alloc] init];
+//            image = [UIImage imageNamed:@"wechatback1"];
+//            image = [image stretchableImageWithLeftCapWidth:image.size.width/2 topCapHeight:30];
+//            [_messageView setImage:image];
+//            _message.text = _chatInfo.chatText;
+//            _message.frame = CGRectMake(10, 5, chatTextSize.width+10, chatTextSize.height+10);
             
         } else if(_chatInfo.messageType == MessageTypeImage) {
             NSString *path = [NSString stringWithFormat:@"%@/%@",[self getDocumentPath],chatInfo.imageUrl];
@@ -288,6 +307,18 @@
         
     }
 }
+- (void)whenLongPressVoice:(UILongPressGestureRecognizer *)gesture
+{
+    if ([gesture state] == UIGestureRecognizerStateBegan) {
+        _voiceView.highlighted = YES;
+    } else if ([gesture state] == UIGestureRecognizerStateEnded){
+        _voiceView.highlighted = NO;
+        if ([self.delegate respondsToSelector:@selector(chatTableViewDelegateWithGestureRecognizer:)]) {
+            [self.delegate chatTableViewDelegateWithGestureRecognizer:(UITapGestureRecognizer*)gesture];
+            
+        }
+    }
+}
 + (CGFloat)tableHeightWithModel:(ChatInfo *)chatInfo{
     if (chatInfo.messageSenderType == MessageSenderByUser) {
         if (chatInfo.messageType == MessageTypeText) {
@@ -303,7 +334,7 @@
             NSString *image = [[Common commonShareInstance] getImageDocumentPathWith:chatInfo.imageUrl];
 
             CGSize imageSize=[[Common commonShareInstance] imageShowSize:[UIImage imageWithContentsOfFile:image]];
-            return imageSize.height +PADDING*2;
+            return imageSize.height +PADDING*3;
         } else if (chatInfo.messageType == MessageTypeVoice) {
             return 40 +PADDING*3;
         }
@@ -311,6 +342,35 @@
     return 0;
 }
 
+/**
+ 根据类型设置文字消息
+
+ @param chatInfo 数据
+ */
+- (void)setMessageAboutMessageType:(ChatInfo *)chatInfo
+{
+    CGFloat chatTextMaxWidth = SCREEN_WIDTH - PADDING *8 - ICON_SIZE*2;
+    CGSize chatTextSize = [_common sizeWithString:_chatInfo.chatText font:TextFont maxSize:CGSizeMake(chatTextMaxWidth, MAXFLOAT)];
+    CGFloat chatTextX;
+    CGFloat chatTextY = PADDING *2;
+    
+    if (chatInfo.messageSenderType == MessageSenderByService) {
+        chatTextX = PADDING *6;
+        _messageView.image = _chatBackgroundService;
+        
+    } else if(chatInfo.messageSenderType == MessageSenderByUser) {
+       chatTextX  = SCREEN_WIDTH - PADDING*6 - ICON_SIZE - chatTextSize.width;
+        _messageView.image = _chatBackgroundUser;
+
+    }
+    self.messageView.frame = CGRectMake(chatTextX, chatTextY, chatTextSize.width +30, chatTextSize.height +20);
+    _message.text = _chatInfo.chatText;
+//    _message.textAlignment = NSTextAlignmentCenter;
+    _message.frame = CGRectMake(10, 5, chatTextSize.width+10, chatTextSize.height+10);
+    UILongPressGestureRecognizer *longTap =
+    [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(whenLongPressText:)];
+    [_messageView addGestureRecognizer:longTap];
+}
 /*
  判断图片长度&宽度
  

@@ -25,7 +25,7 @@
 
 @property (nonatomic,weak) id<ChataTableViewCellDelegate> delegate;
 
-+ (instancetype)cellWithTableView:(UITableView *)tableView;
++ (instancetype)cellWithTableView:(UITableView *)tableView WithIndex:(NSIndexPath *)indexPath;
 + (CGFloat)tableHeightWithModel:(ChatInfo *)chatInfo;
 
 @end

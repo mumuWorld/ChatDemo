@@ -272,13 +272,15 @@
 //         UIImage *image = [UIImage imageNamed:@"i心上海.JPG"];
 //        chat4.imageSmall = image;
 //        [_chatMessageArray addObject:chat4];
-//        ChatInfo *chat5 =[[ChatInfo alloc] init];
-//        chat5.messageSenderType = MessageSenderByUser;
-//        chat5.messageType = MessageTypeVoice;
-//        chat5.duringTime = 10.0f;
-//        [_chatMessageArray addObject:chat5];
+
        _chatMessageArray = [_fmdbTools recordList];
+        
     }
+    ChatInfo *chat5 =[[ChatInfo alloc] init];
+    chat5.messageSenderType = MessageSenderByService;
+    chat5.messageType = MessageTypeText;
+    chat5.chatText = @"111111111111113333333333333333333333333333333333333333333";
+    [_chatMessageArray addObject:chat5];
     return _chatMessageArray;
 }
 - (RecordVoiceView *)recordVoiceView
@@ -431,8 +433,6 @@
 - (void)chatTableViewDelegateWithGestureRecognizer:(UITapGestureRecognizer *)gesture
 {
     UILabel *label = [gesture.view.subviews objectAtIndex:1];
-//    UIImageView *iv1 = gesture.view;
-//    iv1.highlighted = YES;
     if (![_nowPlayVoice isEqualToString:label.text]) {
         _nowPlayVoice = label.text;
         if ([_animationVoiceView isAnimating]) {
@@ -441,6 +441,7 @@
         }
         _isNowPlaying = true;
     }
+    _timer = nil;
     _animationVoiceView = [gesture.view.subviews lastObject];
     
     _playerTools = [[AVAudioPlayerTools alloc] initWithUrl:label.text];
@@ -485,7 +486,7 @@
 }
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    ChatTableViewCell *cell = [ChatTableViewCell cellWithTableView:tableView];
+    ChatTableViewCell *cell = [ChatTableViewCell cellWithTableView:tableView WithIndex:indexPath];
     cell.delegate = self;
     cell.chatInfo = self.chatMessageArray[indexPath.row];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -543,7 +544,7 @@
 - (void)chatMessageArrayAddChatInfo:(ChatInfo *)chatInfo
 {
     [_fmdbTools addRecordWithChatInfo:chatInfo];
-    [_chatMessageArray addObject:chatInfo];
+    _chatMessageArray = [_fmdbTools recordList];
     [self.chatContentView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:_chatMessageArray.count-1 inSection:0]] withRowAnimation:UITableViewRowAnimationBottom];
     [self scrollToBottomAnimated:NO];
 }
