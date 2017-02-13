@@ -26,7 +26,7 @@
 
 #define WarningLabelHeight 30.00
 //聊天字体
-#define TextFont [UIFont systemFontOfSize:16]
+#define TextFont [UIFont systemFontOfSize:15]
 
 #define CommonColor [UIColor colorWithRed:31.0/255.0 green:181.0/255.0 blue:252.0/255.0 alpha:1]
 #define ChatColor [UIColor colorWithRed:246.0/255.0 green:246.0/255.0 blue:246.0/255.0 alpha:1]

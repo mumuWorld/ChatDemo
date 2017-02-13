@@ -57,6 +57,9 @@
 @property (nonatomic,strong) UIImageView *animationVoiceView;
 @property (nonatomic,copy ) NSString *nowPlayVoice;
 @property (nonatomic,strong) NSTimer *timer;
+
+@property (nonatomic,assign) CGFloat currentBottomViewHeight;
+@property (nonatomic,assign) CGFloat currentKeyBoardHeight;
 @end
 
 @implementation ServiceViewController
@@ -276,11 +279,11 @@
        _chatMessageArray = [_fmdbTools recordList];
         
     }
-    ChatInfo *chat5 =[[ChatInfo alloc] init];
-    chat5.messageSenderType = MessageSenderByService;
-    chat5.messageType = MessageTypeText;
-    chat5.chatText = @"111111111111113333333333333333333333333333333333333333333";
-    [_chatMessageArray addObject:chat5];
+//    ChatInfo *chat5 =[[ChatInfo alloc] init];
+//    chat5.messageSenderType = MessageSenderByService;
+//    chat5.messageType = MessageTypeText;
+//    chat5.chatText = @"111111111111113333333333333333333333333333333333333333333";
+//    [_chatMessageArray addObject:chat5];
     return _chatMessageArray;
 }
 - (RecordVoiceView *)recordVoiceView
@@ -335,6 +338,12 @@
         default:
             break;
     }
+}
+- (void)BottomViewDelegateShouldChangHeight:(CGFloat)height
+{
+    _currentBottomViewHeight = [_bottomView getCurrentViewHeight];
+    _bottomView.frame = CGRectMake(0, SCREEN_HEIGHT-self.currentKeyBoardHeight-_currentBottomViewHeight, SCREEN_WIDTH, _currentBottomViewHeight);
+//    _bottomView.messageInputField.frame = CGRectMake(108, 5, 200, height);
 }
 #pragma mark -------长按录音----------
 - (void)LongPressVoiceBtnDelegateWithGesture:(UILongPressGestureRecognizer *)gesture
@@ -503,28 +512,36 @@
     ChatInfo *chatinfo = [[ChatInfo alloc] initWithMessage:userInput];
     self.bottomView.messageInputField.text = @"";
     [self chatMessageArrayAddChatInfo:chatinfo];
-
+    
+    self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-44, SCREEN_WIDTH, 44);
+    self.bottomView.messageInputField.frame = CGRectMake(108, 5, 200, 34);
+    //            self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-offset, self.bottomView.frame.size.width, self.bottomView.frame.size.height);
+    self.chatContentView.frame = CGRectMake(0.0f, 64+44, SCREEN_WIDTH, SCREEN_HEIGHT -64-44-44);
+    //
 }
 
 #pragma mark ---- 根据键盘高度将当前视图向上滚动同样高度
 ///键盘显示事件
 - (void)keyboardWillShow:(NSNotification *)notification {
-    [self scrollToBottomAnimated:NO];
+    
     _addConnectBtn.enabled = NO;
     //获取键盘高度，在不同设备上，以及中英文下是不同的
     CGFloat kbHeight = [[notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size.height;
     
     //计算出键盘顶端到inputTextView panel底端的距离(加上自定义的缓冲距离INTERVAL_KEYBOARD)
     CGFloat offset = kbHeight;
-    
+    self.currentKeyBoardHeight = offset;
     // 取得键盘的动画时间，这样可以在视图上移的时候更连贯
     double duration = [[notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    
+    self.currentBottomViewHeight = [_bottomView getCurrentViewHeight];
     //将视图上移计算好的偏移
     if(offset > 0) {
         [UIView animateWithDuration:duration animations:^{
-            self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-44-offset, self.bottomView.frame.size.width, self.bottomView.frame.size.height);
-            self.chatContentView.frame = CGRectMake(0.0f, 64+44-offset, self.chatContentView.frame.size.width, self.chatContentView.frame.size.height);
+            self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-offset-self.currentBottomViewHeight, self.bottomView.frame.size.width, self.currentBottomViewHeight);
+            NSLog(@"keyboardWillShow currentHeitht=%f",self.currentBottomViewHeight);
+//            self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-offset, self.bottomView.frame.size.width, self.bottomView.frame.size.height);
+            self.chatContentView.frame = CGRectMake(0.0f, 64+44, SCREEN_WIDTH, SCREEN_HEIGHT -64-44-offset-self.currentBottomViewHeight);
+//            [self scrollToBottomAnimated:NO];
         }];
     }
 }
@@ -534,10 +551,11 @@
     _addConnectBtn.enabled = YES;
     // 键盘动画时间
     double duration = [[notify.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    self.currentBottomViewHeight = [_bottomView getCurrentViewHeight];
     //视图下沉恢复原状
     [UIView animateWithDuration:duration animations:^{
-        self.bottomView.frame = CGRectMake(0, SCREEN_HEIGHT-44, self.bottomView.frame.size.width, self.bottomView.frame.size.height);
-        self.chatContentView.frame = CGRectMake(0.0f, 64+44, self.chatContentView.frame.size.width, self.chatContentView.frame.size.height);
+        self.bottomView.frame = CGRectMake(0, SCREEN_HEIGHT-self.currentBottomViewHeight, self.bottomView.frame.size.width, self.bottomView.frame.size.height);
+        self.chatContentView.frame = CGRectMake(0.0f, 64+44, SCREEN_WIDTH, SCREEN_HEIGHT-64-44-self.currentBottomViewHeight);
     }];
 }
 #pragma mark ------------------------工具方法------------------
@@ -564,7 +582,6 @@
         // 2. 创建图片选择控制器
         _ipc = [[UIImagePickerController alloc] init];
         _ipc.sourceType = UIImagePickerControllerSourceTypeCamera;
-        
     }
     _ipc.allowsEditing = YES;
     // 4.设置代理
@@ -584,8 +601,6 @@
         return;
     }
      [self.chatContentView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:self.chatMessageArray.count-1 inSection:0]  atScrollPosition:UITableViewScrollPositionBottom animated:NO];
-    
-    //    [self.chatContentView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:_chatMessageArray.count-1 inSection:0]] withRowAnimation:UITableViewRowAnimationBottom];
 }
 - (void)whenClickImage:(UITapGestureRecognizer *)guesture
 {

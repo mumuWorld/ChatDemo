@@ -12,11 +12,10 @@
 
 - (void)BottomViewDelegateWithButtonTag:(NSInteger)btnTag;
 - (void)LongPressVoiceBtnDelegateWithGesture:(UILongPressGestureRecognizer *)gesture;
+- (void)BottomViewDelegateShouldChangHeight:(CGFloat)height;
 @end
 
 @interface BottomView : UIView
-
-
 
 
 
@@ -29,8 +28,10 @@
 
 @property (nonatomic, strong) UIButton *longPressVoice;
 
-@property (nonatomic, strong) UITextField *messageInputField;
+@property (nonatomic, strong) UITextView *messageInputField;
 
 @property (nonatomic,weak) id<BottomViewDelegate> delegate;
+
+- (CGFloat)getCurrentViewHeight;
 
 @end
