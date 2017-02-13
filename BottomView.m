@@ -40,6 +40,7 @@ static float currentInputHeight;
 //        _messageInputField.backgroundColor = [UIColor redColor];
         _messageInputField.backgroundColor = ChatColor;
         [_messageInputField setFont:[UIFont systemFontOfSize:15]];
+        _messageInputField.scrollEnabled = NO;
         
         [self addSubview:_keyboardInput];
         [self addSubview:_VoiceInput];
@@ -70,13 +71,13 @@ static float currentInputHeight;
     _VoiceInput.tag = 2;
     [_VoiceInput addTarget:self action:@selector(buttonClick:) forControlEvents:UIControlEventTouchUpInside];
     
-    _chooseImage.frame = CGRectMake(59, self.frame.size.height-44, 44, 44);
+    _chooseImage.frame = CGRectMake(64, self.frame.size.height-44, 44, 44);
     _chooseImage.backgroundColor = [UIColor greenColor];
     [_chooseImage setTitle:@"照片" forState:UIControlStateNormal];
     _chooseImage.tag = 3;
     [_chooseImage addTarget:self action:@selector(buttonClick:) forControlEvents:UIControlEventTouchUpInside];
     
-    _longPressVoice.frame = CGRectMake( 108, self.frame.size.height-44, 200, 44);
+    _longPressVoice.frame = CGRectMake( 118, self.frame.size.height-39, self.frame.size.width-128, 34);
     _longPressVoice.backgroundColor = [UIColor greenColor];
     [_longPressVoice setTitle:@"长按说话" forState:UIControlStateNormal];
     _longPressVoice.tag = 4;
@@ -85,12 +86,13 @@ static float currentInputHeight;
     [_longPressVoice addGestureRecognizer:longTap];
 //    [_longPressVoice addTarget:self action:@selector(buttonClick:) forControlEvents:UIControlEventTouchDown];
     
-    _messageInputField.frame = CGRectMake( 108, 5, 200, currentInputHeight);
+    _messageInputField.frame = CGRectMake( 118, 5, self.frame.size.width-128, currentInputHeight);
     NSLog(@"--------------------------------");
     NSLog(@"currentInputHeight=%f",currentInputHeight);
     _messageInputField.layer.cornerRadius = 5;
     _messageInputField.returnKeyType = UIReturnKeySend;
     _messageInputField.delegate = self;
+    
     
 
 }

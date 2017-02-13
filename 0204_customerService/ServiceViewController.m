@@ -279,11 +279,6 @@
        _chatMessageArray = [_fmdbTools recordList];
         
     }
-//    ChatInfo *chat5 =[[ChatInfo alloc] init];
-//    chat5.messageSenderType = MessageSenderByService;
-//    chat5.messageType = MessageTypeText;
-//    chat5.chatText = @"111111111111113333333333333333333333333333333333333333333";
-//    [_chatMessageArray addObject:chat5];
     return _chatMessageArray;
 }
 - (RecordVoiceView *)recordVoiceView
@@ -320,11 +315,16 @@
             NSLog(@"_keyboardInput click");
             flag = 0;
             self.inputType = flag;
+            [self.bottomView.messageInputField becomeFirstResponder];
+            [self BottomViewDelegateShouldChangHeight:0.0f];
             break;
         case 2:
             NSLog(@"_VoiceInput click");
             flag = 1;
             self.inputType = flag;
+            [self.bottomView.messageInputField resignFirstResponder];
+            self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-44, SCREEN_WIDTH, 44);
+            self.chatContentView.frame = CGRectMake(0.0f, 64+44, SCREEN_WIDTH, SCREEN_HEIGHT -64-44-44);
             break;
         case 3:
             NSLog(@"_chooseImage click");
@@ -343,7 +343,7 @@
 {
     _currentBottomViewHeight = [_bottomView getCurrentViewHeight];
     _bottomView.frame = CGRectMake(0, SCREEN_HEIGHT-self.currentKeyBoardHeight-_currentBottomViewHeight, SCREEN_WIDTH, _currentBottomViewHeight);
-//    _bottomView.messageInputField.frame = CGRectMake(108, 5, 200, height);
+    _chatContentView.frame = CGRectMake(0, 64+44, SCREEN_WIDTH, CGRectGetMinY(_bottomView.frame)-64-44);
 }
 #pragma mark -------长按录音----------
 - (void)LongPressVoiceBtnDelegateWithGesture:(UILongPressGestureRecognizer *)gesture
@@ -515,7 +515,6 @@
     
     self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-44, SCREEN_WIDTH, 44);
     self.bottomView.messageInputField.frame = CGRectMake(108, 5, 200, 34);
-    //            self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-offset, self.bottomView.frame.size.width, self.bottomView.frame.size.height);
     self.chatContentView.frame = CGRectMake(0.0f, 64+44, SCREEN_WIDTH, SCREEN_HEIGHT -64-44-44);
     //
 }
@@ -539,7 +538,6 @@
         [UIView animateWithDuration:duration animations:^{
             self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-offset-self.currentBottomViewHeight, self.bottomView.frame.size.width, self.currentBottomViewHeight);
             NSLog(@"keyboardWillShow currentHeitht=%f",self.currentBottomViewHeight);
-//            self.bottomView.frame = CGRectMake(0.0f, SCREEN_HEIGHT-offset, self.bottomView.frame.size.width, self.bottomView.frame.size.height);
             self.chatContentView.frame = CGRectMake(0.0f, 64+44, SCREEN_WIDTH, SCREEN_HEIGHT -64-44-offset-self.currentBottomViewHeight);
 //            [self scrollToBottomAnimated:NO];
         }];
